@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "shell.h": "c",
+        "stdio.h": "c",
+        "unistd.h": "c",
+        "pwd.h": "c",
+        "types.h": "c",
+        "limits.h": "c"
+    }
+}
