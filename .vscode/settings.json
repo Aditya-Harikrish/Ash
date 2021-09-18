@@ -5,6 +5,11 @@
         "unistd.h": "c",
         "pwd.h": "c",
         "types.h": "c",
-        "limits.h": "c"
+        "limits.h": "c",
+        "stdlib.h": "c",
+        "stdbool.h": "c",
+        "inttypes.h": "c",
+        "prompt.h": "c",
+        "utils.h": "c"
     }
 }

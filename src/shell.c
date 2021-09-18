@@ -1,50 +1,42 @@
 #include "shell.h"
 
-int main(void) {
-    struct passwd *pw;
-    uid_t uid;
-    struct utsname systemInfo;
-    char homeDirectory[PATH_MAX], currentDirectory[PATH_MAX], directoryOnPrompt[PATH_MAX];
-    if (getcwd(homeDirectory, sizeof(homeDirectory)) == NULL) {
-        perror("Could not get the home directory. Error with getcwd()");
-        return -1;
+int execute(char *OGtoken, char homeDirectory[], char previousDirectory[]) {
+    char token[MAX_COMMAND_SIZE];
+    strcpy(token, OGtoken);
+    if(DEBUG) {
+        printf("Executing the command: %s\n", token);
+    }
+    char whitespace[] = " \t\n\f\r\v";
+    char *saveptr = NULL;
+
+    /* commandName is the name of the command, like cd and ls */
+    char *commandName = strtok_r(token, whitespace, &saveptr);
+    if(commandName == NULL) {
+        return NO_ERROR;
     }
 
-    while (1) {
-        CLEARSCREEN;
-        // buffer = getlogin();
-        uid = geteuid();
-        pw = getpwuid(uid);
-        if (pw == NULL) {
-            perror("Could not get the pw pointer");
-            return -1;
-        }
-        if (uname(&systemInfo) != 0) {
-            perror("Failed to get the username corresponding to the user ID");
-            return -1;
-        }
-        if (getcwd(currentDirectory, sizeof(currentDirectory)) == NULL) {
-            perror("Could not get the present working directory. Error with getcwd()");
-            return -1;
-        }
-
-        // If cwd is under home
-        if (startsWith(currentDirectory, homeDirectory)) {
-            directoryOnPrompt[0] = '~';
-            unsigned long i = 1, j = strlen(homeDirectory);
-            while (j < strlen(currentDirectory)) {
-                directoryOnPrompt[i] = currentDirectory[j];
-                ++j;
-                ++i;
-            }
-            directoryOnPrompt[j] = '\0';
-        } else {
-            strcpy(directoryOnPrompt, currentDirectory);
-        }
-
-        printf("<%s@%s:%s>", pw->pw_name, systemInfo.sysname, directoryOnPrompt);
-        break;
+    if(DEBUG) {
+        printf("commandName in execute(): %s\n", commandName);
     }
 
-    return 0;
+    if(!strcmp(commandName, "pwd")) {
+        return pwd();
+    }
+    else if(!strcmp(commandName, "echo")) {
+        return echo(commandName, whitespace, saveptr);
+    }
+    else if(!strcmp(commandName, "cd")) {
+        return cd(&saveptr, homeDirectory, previousDirectory);
+    }
+    else if(!strcmp(commandName, "ls")) {
+        return ls(saveptr, homeDirectory);
+
+    }
+    else if(!strcmp(commandName, "exit")) {
+        return EXIT_PROGRAM;
+    }
+    else {
+        printf("%s: command not found\n", commandName);
+        return NO_ERROR;
+    }
 }
