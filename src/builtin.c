@@ -80,3 +80,117 @@ int cd(char **saveptr, char homeDirectory[], char previousDirectory[]) {
     strcpy(previousDirectory, currentDirectory);
     return NO_ERROR;
 }
+
+int pinfo(char *homeDirectory, char *saveptr) {
+    char whitespace[] = " \t\n\f\r\v";
+    char *arg = strtok_r(NULL, whitespace, &saveptr);
+    pid_t pid = getpid();
+    char statPath[PATH_MAX], cmdlinePath[PATH_MAX], exePath[PATH_MAX];
+    if(arg != NULL) {
+        char *endptr = NULL;
+        pid = (pid_t)strtol(arg, &endptr, 10);
+        if(endptr == arg || errno == EINVAL || errno == ERANGE) {
+            printf("Error: %s is not a valid process ID!", arg);
+            perror("");
+            return WARNING_ERROR;
+        }
+    }
+    sprintf(statPath, "/proc/%d/stat", pid);
+    sprintf(cmdlinePath, "/proc/%d/cmdline", pid);
+    sprintf(exePath, "/proc/%d/exe", pid);
+    if(DEBUG) {
+        printf("stat path: %s\n", statPath);
+        printf("cmdline path: %s\n", cmdlinePath);
+        printf("exe path: %s\n", exePath);
+    }
+
+    /* Process ID */
+    printf("pid -- %d\n", pid);
+
+    /* Process Status */
+    FILE *statFile;
+    if((statFile = fopen(statPath, "r")) == NULL) {
+        printf("Could not open %s\n", statPath);
+        perror("");
+        return FATAL_ERROR;
+    }
+    char status, fileName[FILENAME_MAX];
+    pid_t pid_unused = pid;
+    fscanf(statFile, "%d %s %c", &pid_unused, fileName, &status);
+    if(DEBUG) {
+        printf("fileName = %s\n", fileName);
+    }
+    if(pid_unused != pid) {
+        printf("pid not matching pid in  %s\n", statPath);
+        fclose(statFile);
+        return FATAL_ERROR;
+    }
+    printf("Process Status -- %c", status);
+
+    // If in foreground 
+    if(getpgid(pid) == pid && (status == 'R' || status == 'S')) {
+        printf("+");
+    }
+
+    printf("\n");
+
+    /* Memory */
+    char statmPath[PATH_MAX];
+    sprintf(statmPath, "/proc/%d/statm", pid);
+    if(DEBUG) {
+        printf("statm path: %s\n", statmPath);
+    }
+    ssize_t vmsize = 0;
+    FILE *statmFile = fopen(statmPath, "r");
+    fscanf(statmFile, "%ld", &vmsize);
+    printf("memory -- %ld\n", vmsize);
+
+    /* Executable Path */
+    char executableRelPath[PATH_MAX];
+    char executableAbsPath[PATH_MAX + 1];
+    ssize_t bufSize = 0;
+    if((bufSize = readlink(exePath, executableAbsPath, sizeof(executableAbsPath) - 1)) == -1) {
+        perror("readlink error");
+        fclose(statFile);
+        return FATAL_ERROR;
+    }
+    executableAbsPath[bufSize] = '\0';
+    char currentDirectory[PATH_MAX + 1];
+    if(getcwd(currentDirectory, sizeof(currentDirectory)) == NULL) {
+        perror("Error with getcwd()");
+        fclose(statFile);
+        return FATAL_ERROR;
+    }
+    if(startsWith(executableAbsPath, currentDirectory)) {
+        executableRelPath[0] = '.';
+        unsigned long i = 1, j = strlen(currentDirectory);
+        while(j < strlen(executableAbsPath)) {
+            executableRelPath[i] = executableAbsPath[j];
+            ++i; ++j;
+        }
+        executableRelPath[i] = '\0';
+    }
+    else if(startsWith(executableAbsPath, homeDirectory)) {
+        executableRelPath[0] = '.';
+        unsigned long i = 1, j = strlen(homeDirectory);
+        while(j < strlen(executableAbsPath)) {
+            executableRelPath[i] = executableAbsPath[j];
+            ++i; ++j;
+        }
+        executableRelPath[i] = '\0';
+    }
+    else {
+        strcpy(executableRelPath, executableAbsPath);
+        executableRelPath[strlen(executableRelPath)] = '\0';
+    }
+
+    printf("Executable Path -- ");
+    puts(executableRelPath);
+    if(DEBUG) {
+        printf("Absolute executable Path -- ");
+        puts(executableAbsPath);
+    }
+    fclose(statmFile);
+    fclose(statFile);
+    return NO_ERROR;
+}

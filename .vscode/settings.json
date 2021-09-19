@@ -10,6 +10,13 @@
         "stdbool.h": "c",
         "inttypes.h": "c",
         "prompt.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "header.h": "c",
+        "stat.h": "c",
+        "ptrace.h": "c",
+        "condition_variable": "cpp",
+        "future": "cpp",
+        "mutex": "cpp",
+        "shared_mutex": "cpp"
     }
 }

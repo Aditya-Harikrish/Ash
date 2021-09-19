@@ -7,5 +7,6 @@
 int pwd();
 int echo(char *commandName, char delimiters[], char *saveptr);
 int cd(char **saveptr, char homeDirectory[], char previousDirectory[]);
+int pinfo(char *homeDirectory, char *saveptr);
 
 #endif

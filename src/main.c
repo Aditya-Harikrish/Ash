@@ -24,7 +24,9 @@ int main(void) {
         if(DEBUG) {
             printf("command: %s\n", command);
         }
-
+        char *copyOfCommand = strdup(command);
+        addToHistory(copyOfCommand);
+        free(copyOfCommand);
         char delim[] = ";\n";
         char *token = strtok_r(command, delim, &saveptr);
 

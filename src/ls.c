@@ -50,7 +50,7 @@ int ls(char *saveptr, const char homeDirectory[]) {
     }
     if(realpath(path, absolutePath) == NULL) {
         perror("realpath() error");
-        return WARNING_ERROR;
+        return FATAL_ERROR;
     }
 
     if(DEBUG) {
@@ -100,8 +100,8 @@ int ls(char *saveptr, const char homeDirectory[]) {
             return WARNING_ERROR;
         }
         strcat(absPathOfFile, dirEntry->d_name);
-        if(stat(absPathOfFile, &statbuf) != 0) {
-            perror("stat() error");
+        if(lstat(absPathOfFile, &statbuf) != 0) {
+            perror("lstat() error");
             closedir(dirCopy);
             return WARNING_ERROR;
         }

@@ -24,7 +24,12 @@
 #define CYAN            "\x1b[36m"
 #define RESET           "\x1b[0m"
 
+#define MAX_NUMBER_OF_ARGS 100
+
 /* Checks if str starts with substr */
 bool startsWith(const char *str, const char *substr);
+
+long min(long a, long b);
+long max(long a, long b);
 
 #endif
