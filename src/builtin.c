@@ -81,6 +81,25 @@ int cd(char **saveptr, char homeDirectory[], char previousDirectory[]) {
     return NO_ERROR;
 }
 
+char get_status(pid_t pid) {
+    char statPath[PATH_MAX];
+    sprintf(statPath, "/proc/%d/stat", pid);
+    if(DEBUG) {
+        printf("stat path: %s\n", statPath);
+    }
+
+    FILE *statFile;
+    if((statFile = fopen(statPath, "r")) == NULL) {
+        printf("Could not open %s\n", statPath);
+        perror("");
+        return WARNING_ERROR;
+    }
+    char status, fileName[FILENAME_MAX];
+    pid_t pid_unused = -1;
+    fscanf(statFile, "%d %s %c", &pid_unused, fileName, &status);
+    return status;
+}
+
 int pinfo(char *homeDirectory, char *saveptr) {
     char whitespace[] = " \t\n\f\r\v";
     char *arg = strtok_r(NULL, whitespace, &saveptr);
@@ -112,7 +131,7 @@ int pinfo(char *homeDirectory, char *saveptr) {
     if((statFile = fopen(statPath, "r")) == NULL) {
         printf("Could not open %s\n", statPath);
         perror("");
-        return FATAL_ERROR;
+        return WARNING_ERROR;
     }
     char status, fileName[FILENAME_MAX];
     pid_t pid_unused = pid;
@@ -128,7 +147,7 @@ int pinfo(char *homeDirectory, char *saveptr) {
     printf("Process Status -- %c", status);
 
     // If in foreground 
-    if(getpgid(pid) == pid && (status == 'R' || status == 'S')) {
+    if((C_find(bg_processes, pid) == NULL) && (status == 'R' || status == 'S')) {
         printf("+");
     }
 
@@ -194,3 +213,7 @@ int pinfo(char *homeDirectory, char *saveptr) {
     fclose(statFile);
     return NO_ERROR;
 }
+
+
+
+

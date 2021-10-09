@@ -1,20 +1,20 @@
-pwd ; echo
-pwd
-pwd
+./src/test.sh &
+jobs
+sig 1 19
+bg 1
+sig 1 15
 echo
-ls
-ls
-echo x
-echo 	q
+>/home/aditya/file1.txt
+> /home/aditya/file1.txt
+./src/test.sh
+code &
+sleep &;
+sleep --help
+htop
+tree
+code
+echo
 pwd
+asdasd
 history
-echo i
-ls
-history 2
-pwd
-history
-history 2
-history 30
-repeat 3 pwd
-repeat 2 ls
-repeat 3 echo Hello world
+code

@@ -1,7 +1,17 @@
 #include "shell.h"
 #include "prompt.h"
 
+CVector bg_processes;
+int job_number;
 int main(void) {
+    /* Setup */
+    job_number = 1;
+    C_init_vector(&bg_processes);
+    struct sigaction act;
+    act.sa_flags = SA_RESTART;
+    act.sa_handler = bg_signal_handler;
+    sigaction(SIGCHLD, &act, NULL);
+    setup();
     char homeDirectory[PATH_MAX + 1], previousDirectory[PATH_MAX + 1];
 
     if(getcwd(homeDirectory, sizeof(homeDirectory)) == NULL) {
@@ -11,15 +21,27 @@ int main(void) {
     strcpy(previousDirectory, homeDirectory);
     CLEARSCREEN;
     int status = NO_ERROR;
+
+    /* Main loop */
     while(status != EXIT_PROGRAM) {
+    start:;
         prompt(homeDirectory);
 
         char *command = NULL, *saveptr = NULL;
         size_t commandBufferSize = 0;
         ssize_t commandSize = getline(&command, &commandBufferSize, stdin);
-        if(commandSize <= 0) {
-            perror("getline() error");
-            exit(EXIT_FAILURE);
+        if(commandSize < 0) {
+            // free(command);
+            if(DEBUG) {
+                perror("getline() error");
+            }
+            // continue;
+            // exit(EXIT_SUCCESS);
+            // continue;
+            if(pid_foreground == -1) {
+                fpurge(stdin);
+                goto start;
+            }
         }
         if(DEBUG) {
             printf("command: %s\n", command);

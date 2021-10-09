@@ -2,6 +2,9 @@
 #define UTILS_H
 
 #include "header.h"
+
+pid_t pid_foreground;
+
 #define CLEARSCREEN printf("\033[2J\033[1;1H")
 
 #ifndef DEBUG
@@ -25,9 +28,25 @@
 #define RESET           "\x1b[0m"
 
 #define MAX_NUMBER_OF_ARGS 100
+#define MAX_COMMAND_SIZE 5000
+
+#define after_malloc_check(x) \
+if(x == NULL) { \
+printf("Failed to allocate memory\n");\
+return FATAL_ERROR;\
+}
+
+#define after_fork_check(pid) \
+if(pid == -1) {\
+    perror("fork()");\
+    return FATAL_ERROR;\
+}
 
 /* Checks if str starts with substr */
 bool startsWith(const char *str, const char *substr);
+
+/* Remove leading and trailing whitespace */
+void strip(char *str);
 
 long min(long a, long b);
 long max(long a, long b);

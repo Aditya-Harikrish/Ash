@@ -17,6 +17,11 @@
         "condition_variable": "cpp",
         "future": "cpp",
         "mutex": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "dirent.h": "c",
+        "signal.h": "c",
+        "history.h": "c",
+        "fg_bg.h": "c",
+        "vector.h": "c"
     }
 }
