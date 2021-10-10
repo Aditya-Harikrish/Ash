@@ -2,6 +2,7 @@
 #define HEADER_H
 
 #include <signal.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
 #include <pwd.h>

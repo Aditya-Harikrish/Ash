@@ -1,20 +1,20 @@
-./src/test.sh &
-jobs
-sig 1 19
-bg 1
-sig 1 15
+echo hello
+cd /home/aditya
+exit
+cd /home/aditya
 echo
->/home/aditya/file1.txt
-> /home/aditya/file1.txt
-./src/test.sh
-code &
-sleep &;
-sleep --help
-htop
-tree
-code
-echo
-pwd
-asdasd
+echo >
+
+
 history
-code
+exit
+echo
+echo >
+echo
+ls
+cat file1.txt
+exit
+exit
+cd /home/aditya
+replay -command echo "hi" -interval 3 -period 6
+exit

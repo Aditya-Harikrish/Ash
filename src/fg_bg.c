@@ -51,13 +51,7 @@ void add_bg(Command command) {
 int jobs_sort(const void *a, const void *b) {
     Command *x = (Command *)a;
     Command *y = (Command *)b;
-    // char *x_command = strdup(x->command);
-    // char *y_command = strdup(y->command);
-    // strip(x_command);
-    // strip(y_command);
     int ret = strcmp(x->command, y->command);
-    // free(y_command);
-    // free(x_command);
     return ret;
 }
 
@@ -158,13 +152,67 @@ int bg(char *saveptr) {
     return NO_ERROR;
 }
 
+int fg(char *saveptr) {
+    char whitespace[] = " \t\n\f\r\v";
+
+    /* Get the job number */
+    char *arg = strtok_r(NULL, whitespace, &saveptr);
+    if(arg == NULL) {
+        printf("Error: insufficient number of arguments provided\n");
+        return WARNING_ERROR;
+    }
+    char *endptr = NULL;
+    int job_no = (int)strtol(arg, &endptr, 10);
+    if(endptr == arg || errno == EINVAL || errno == ERANGE) {
+        printf("Error: %s is not a valid number!\n", arg);
+        return WARNING_ERROR;
+    }
+
+    /* Find the pid corrsponding to job_no */
+    pid_t pid = -1;
+    for(size_t i = 0; i < bg_processes.size; ++i) {
+        if(bg_processes.arr[i].job_number == job_no) {
+            pid = bg_processes.arr[i].pid;
+            break;
+        }
+    }
+    if(pid == -1) {
+        printf("Error: job with job number %d not found!\n", job_no);
+        return WARNING_ERROR;
+    }
+
+    /*  */
+    __sighandler_t check;
+    check = signal(SIGTTIN, SIG_IGN);
+    after_signal_check(check);
+    check = signal(SIGTTOU, SIG_IGN);
+    after_signal_check(check);
+    tcsetpgrp(0, getpgid(pid));
+    kill(pid, SIGCONT);
+
+    /* Remove this job from bg_processes */
+    int VCheck = C_remove(&bg_processes, pid);
+    if(VCheck == FATAL_ERROR) {
+        return FATAL_ERROR;
+    }
+
+    int wstatus = 0;
+    waitpid(pid, &wstatus, WUNTRACED);
+    tcsetpgrp(0, getpgrp());
+    check = signal(SIGTTIN, SIG_DFL);
+    after_signal_check(check);
+    check = signal(SIGTTOU, SIG_DFL);
+    after_signal_check(check);
+    return NO_ERROR;
+}
+
 int sig(char *saveptr) {
     char whitespace[] = " \t\n\f\r\v";
 
     /* Get the job number */
     char *arg = strtok_r(NULL, whitespace, &saveptr);
     if(arg == NULL) {
-        printf("Error: insufficient n   umber of arguments provided\n");
+        printf("Error: insufficient number of arguments provided\n");
         return WARNING_ERROR;
     }
     char *endptr = NULL;
@@ -300,6 +348,15 @@ int foreground_command(char *copyOfToken, char *commandName) {
         pid_foreground = pid;
         int wstatus = 0;
         waitpid(pid, &wstatus, WUNTRACED);
+        if(WIFSTOPPED(wstatus)) {
+            Command command;
+            command.job_number = job_number;
+            ++job_number;
+            command.pid = pid;
+            strcpy(command.commandName, commandName);
+            strcpy(command.command, copyOfToken);
+            add_bg(command);
+        }
         free(copyOfToken);
         pid_foreground = -1;
     }
@@ -311,11 +368,24 @@ void ctrlC(int s) {
         printf("Detected ctrl + C, signal %d\n", s);
     }
     if(pid_foreground != -1) {
+        if(DEBUG) {
+            printf("pid_foreground = %d\n", pid_foreground);
+        }
         kill(pid_foreground, SIGINT);
     }
 }
 
-
+void ctrlZ(int s) {
+    if(DEBUG) {
+        printf("Detected ctrl + C, signal %d\n", s);
+    }
+    if(pid_foreground != -1) {
+        // if(DEBUG) {
+        printf("pid_foreground = %d\n", pid_foreground);
+        // }
+        kill(pid_foreground, SIGTSTP);
+    }
+}
 
 
 

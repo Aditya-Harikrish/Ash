@@ -3,6 +3,8 @@
 
 CVector bg_processes;
 int job_number;
+int save_stdout = -1, save_stdin = -1;
+pid_t pid_foreground;
 int main(void) {
     /* Setup */
     job_number = 1;
@@ -23,24 +25,25 @@ int main(void) {
     int status = NO_ERROR;
 
     /* Main loop */
+start:;
     while(status != EXIT_PROGRAM) {
-    start:;
         prompt(homeDirectory);
 
         char *command = NULL, *saveptr = NULL;
         size_t commandBufferSize = 0;
         ssize_t commandSize = getline(&command, &commandBufferSize, stdin);
         if(commandSize < 0) {
-            // free(command);
+            sleep(1);
+            goto start;
+            free(command);
             if(DEBUG) {
                 perror("getline() error");
             }
             // continue;
-            // exit(EXIT_SUCCESS);
-            // continue;
             if(pid_foreground == -1) {
-                fpurge(stdin);
-                goto start;
+                //  fpurge(stdin);
+                continue;
+                // exit(EXIT_SUCCESS);
             }
         }
         if(DEBUG) {
@@ -67,6 +70,7 @@ int main(void) {
             }
 
             status = execute(copyOfToken, homeDirectory, previousDirectory);
+            resetIO();
             free(copyOfToken);
             if(status == FATAL_ERROR) {
                 exit(EXIT_FAILURE);

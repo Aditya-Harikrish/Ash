@@ -21,6 +21,9 @@ int jobs_sort(const void *a, const void *b);
 /* bg command */
 int bg(char *saveptr);
 
+/* fg command */
+int fg(char *saveptr);
+
 /* sig command */
 int sig(char *saveptr);
 
@@ -29,5 +32,6 @@ int background_command(char *copyOfToken, char *commandName);
 int foreground_command(char *copyOfToken, char *commandName);
 
 void ctrlC(int s);
+void ctrlZ(int s);
 
 #endif

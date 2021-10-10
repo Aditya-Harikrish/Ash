@@ -4,6 +4,7 @@
 #include "history.h"
 #include "ls.h"
 #include "fg_bg.h"
+#include "io.h"
 #include "vector.h"
 
 #ifndef SHELL_H

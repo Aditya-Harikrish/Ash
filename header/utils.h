@@ -3,7 +3,10 @@
 
 #include "header.h"
 
-pid_t pid_foreground;
+#define _GNU_SOURCE
+
+extern pid_t pid_foreground;
+extern int save_stdout, save_stdin;
 
 #define CLEARSCREEN printf("\033[2J\033[1;1H")
 
@@ -40,6 +43,13 @@ return FATAL_ERROR;\
 if(pid == -1) {\
     perror("fork()");\
     return FATAL_ERROR;\
+}
+
+#define after_signal_check(x) \
+if(x == SIG_ERR) { \
+    printf("signal() error: "); \
+    perror(""); \
+    return FATAL_ERROR; \
 }
 
 /* Checks if str starts with substr */
