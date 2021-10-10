@@ -214,6 +214,71 @@ int pinfo(char *homeDirectory, char *saveptr) {
     return NO_ERROR;
 }
 
+int replay(char *saveptr, char homeDirectory[], char previousDirectory[]) {
+    char whitespace[] = " \t\n\f\r\v";
 
+    int interval = 1, period = 1;
+    char *arg = strtok_r(NULL, whitespace, &saveptr);
+    char commandToExecute[MAX_COMMAND_SIZE];
+    commandToExecute[0] = '\0';
+    if(arg == NULL) {
+        fprintf(stderr, "Error: arguments missing\n");
+        return WARNING_ERROR;
+    }
+    while(arg != NULL) {
+        if(!strcmp(arg, "-command")) {
+            arg = strtok_r(NULL, whitespace, &saveptr);
+            while(arg != NULL && strcmp(arg, "-interval") && strcmp(arg, "period")) {
+                strcat(commandToExecute, arg);
+                strcat(commandToExecute, " ");
+                arg = strtok_r(NULL, whitespace, &saveptr);
+            }
+        }
+        if(arg == NULL) break;
+        if(!strcmp(arg, "-interval")) {
+            arg = strtok_r(NULL, whitespace, &saveptr);
+            if(arg == NULL) {
+                fprintf(stderr, "Error: arguments missing\n");
+                return WARNING_ERROR;
+            }
+            char *endptr = NULL;
+            interval = (int)strtol(arg, &endptr, 10);
+            if(endptr == arg || errno == EINVAL || errno == ERANGE) {
+                printf("Error: %s is not a valid number!\n", arg);
+                perror("");
+                return WARNING_ERROR;
+            }
+            arg = strtok_r(NULL, whitespace, &saveptr);
+        }
+        if(arg == NULL) break;
+        if(!strcmp(arg, "-period")) {
+            arg = strtok_r(NULL, whitespace, &saveptr);
+            if(arg == NULL) {
+                fprintf(stderr, "Error: arguments missing\n");
+                return WARNING_ERROR;
+            }
+            char *endptr = NULL;
+            period = (int)strtol(arg, &endptr, 10);
+            if(endptr == arg || errno == EINVAL || errno == ERANGE) {
+                printf("Error: %s is not a valid number!\n", arg);
+                perror("");
+                return WARNING_ERROR;
+            }
+            arg = strtok_r(NULL, whitespace, &saveptr);
+        }
+    }
+    if(DEBUG) {
+        fprintf(stderr, "Command in replay: %s\n", commandToExecute);
+        fprintf(stderr, "Period in replay: %d\n", period);
+        fprintf(stderr, "Interval in replay: %d\n", interval);
+    }
+    int timePassed = 0;
+    while(timePassed <= period) {
+        sleep((unsigned)interval);
+        timePassed += interval;
+        execute(commandToExecute, homeDirectory, previousDirectory);
+    }
+    return NO_ERROR;
+}
 
 

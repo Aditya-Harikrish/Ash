@@ -1,5 +1,7 @@
 test*.*
 a.out
+file1.txt
+file2.txt
 # Assignment Question
 *.pdf
 *.Identifier

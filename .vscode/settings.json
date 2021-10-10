@@ -22,6 +22,7 @@
         "signal.h": "c",
         "history.h": "c",
         "fg_bg.h": "c",
-        "vector.h": "c"
+        "vector.h": "c",
+        "builtin.h": "c"
     }
 }

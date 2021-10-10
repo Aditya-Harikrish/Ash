@@ -4,7 +4,6 @@ void setup() {
     pid_foreground = -1;
 
     /* ctrl + C */
-    // signal(SIGINT, SIG_IGN);
     struct sigaction ctrC_handler;
 
     ctrC_handler.sa_handler = ctrlC;
@@ -87,22 +86,7 @@ int execute(char *OGtoken, char homeDirectory[], char previousDirectory[]) {
                     dup2(pipe2[1], STDOUT_FILENO);
                 }
 
-                // strcpy(temp, commands[commandNum]);
-
-                // r = redirection_check(temp);
-                // if(r == 1 || r == 2)
-                //     redirection(part, ii, commands[commandNum], r);
-
-                // else {
-                //     int z = execvp(part[0], part);
-                //     if(z < 0)
-                //         perror("Error: command not found\n");
-
-                //     if(r == 0)
-                //         exit(0);
-                // }
                 execute(command, homeDirectory, previousDirectory);
-                // exit(EXIT_SUCCESS);
             }
             /* Parent process */
             else {
@@ -110,10 +94,6 @@ int execute(char *OGtoken, char homeDirectory[], char previousDirectory[]) {
 
                 if(commandNum == 0) {
                     close(pipe1[1]);
-                    // if(inp == 1) {
-                    //     dup2(oldin, STDIN_FILENO);
-                    //     // close(ifd);
-                    // }
                 }
                 else if(commandNum == numberOfPipes - 1) {
                     if(commandNum % 2 == 0) {
@@ -123,10 +103,6 @@ int execute(char *OGtoken, char homeDirectory[], char previousDirectory[]) {
                         close(pipe1[0]);
                     }
 
-                    // if(outp == 1) {
-                    //     dup2(oldout, STDOUT_FILENO);
-                    //     // close(ofd);
-                    // }
                 }
                 else if(commandNum % 2 == 0) {
                     close(pipe1[1]);
@@ -242,68 +218,7 @@ int execute(char *OGtoken, char homeDirectory[], char previousDirectory[]) {
         return sig(saveptr);
     }
     else if(!strcmp(commandName, "replay")) {
-        int interval = 1, period = 1;
-        char *arg = strtok_r(NULL, whitespace, &saveptr);
-        char commandToExecute[MAX_COMMAND_SIZE];
-        commandToExecute[0] = '\0';
-        if(arg == NULL) {
-            fprintf(stderr, "Error: arguments missing\n");
-            return WARNING_ERROR;
-        }
-        while(arg != NULL) {
-            if(!strcmp(arg, "-command")) {
-                arg = strtok_r(NULL, whitespace, &saveptr);
-                while(arg != NULL && strcmp(arg, "-interval") && strcmp(arg, "period")) {
-                    strcat(commandToExecute, arg);
-                    strcat(commandToExecute, " ");
-                    arg = strtok_r(NULL, whitespace, &saveptr);
-                }
-            }
-            if(arg == NULL) break;
-            if(!strcmp(arg, "-interval")) {
-                arg = strtok_r(NULL, whitespace, &saveptr);
-                if(arg == NULL) {
-                    fprintf(stderr, "Error: arguments missing\n");
-                    return WARNING_ERROR;
-                }
-                char *endptr = NULL;
-                interval = (int)strtol(arg, &endptr, 10);
-                if(endptr == arg || errno == EINVAL || errno == ERANGE) {
-                    printf("Error: %s is not a valid number!\n", arg);
-                    perror("");
-                    return WARNING_ERROR;
-                }
-                arg = strtok_r(NULL, whitespace, &saveptr);
-            }
-            if(arg == NULL) break;
-            if(!strcmp(arg, "-period")) {
-                arg = strtok_r(NULL, whitespace, &saveptr);
-                if(arg == NULL) {
-                    fprintf(stderr, "Error: arguments missing\n");
-                    return WARNING_ERROR;
-                }
-                char *endptr = NULL;
-                period = (int)strtol(arg, &endptr, 10);
-                if(endptr == arg || errno == EINVAL || errno == ERANGE) {
-                    printf("Error: %s is not a valid number!\n", arg);
-                    perror("");
-                    return WARNING_ERROR;
-                }
-                arg = strtok_r(NULL, whitespace, &saveptr);
-            }
-        }
-        if(DEBUG) {
-            fprintf(stderr, "Command in replay: %s\n", commandToExecute);
-            fprintf(stderr, "Period in replay: %d\n", period);
-            fprintf(stderr, "Interval in replay: %d\n", interval);
-        }
-        int timePassed = 0;
-        while(timePassed <= period) {
-            sleep((unsigned)interval);
-            timePassed += interval;
-            execute(commandToExecute, homeDirectory, previousDirectory);
-        }
-        return NO_ERROR;
+        return replay(saveptr, homeDirectory, previousDirectory);
     }
 
     /* All other commands */

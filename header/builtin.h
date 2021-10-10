@@ -12,4 +12,6 @@ int cd(char **saveptr, char homeDirectory[], char previousDirectory[]);
 char get_status(pid_t pid);
 int pinfo(char *homeDirectory, char *saveptr);
 
+int replay(char *saveptr, char homeDirectory[], char previousDirectory[]);
+
 #endif
